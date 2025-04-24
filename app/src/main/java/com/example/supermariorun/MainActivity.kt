@@ -7,8 +7,6 @@ import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import com.example.supermariorun.Utilities.SignalManager
-import com.example.supermariorun.logic.GameLogic
-
 
 
 class MainActivity : AppCompatActivity() {
@@ -81,7 +79,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun drawMario(lane: Int) {
         for (i in 0 until numCols) {
-            cellMatrix[numRows - 1][i].setImageDrawable(null)
+            val cell = cellMatrix[numRows - 1][i]
+            if (cell.tag != "shell") {
+                cell.setImageDrawable(null)
+                cell.tag = null
+            }
         }
         cellMatrix[numRows - 1][lane].setImageResource(R.drawable.mario)
     }
