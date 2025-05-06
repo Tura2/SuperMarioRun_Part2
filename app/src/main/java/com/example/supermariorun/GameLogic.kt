@@ -1,21 +1,27 @@
 package com.example.supermariorun
 
 import android.content.Context
-import android.os.CountDownTimer
 import android.util.Log
 import android.widget.ImageView
 import com.example.supermariorun.Utilities.SignalManager
+import com.example.supermariorun.Utilities.UIUpdater
 
 class GameLogic(
     private val context: Context,
     private val cellMatrix: Array<Array<ImageView>>,
     private val onMarioDraw: (lane: Int) -> Unit,
-    private val onHeartUpdate: (lives: Int) -> Unit
+    private val onHeartUpdate: (lives: Int) -> Unit,
+    private val onMeterUpdate: (metersPassed: Int) -> Unit,
+    private val onCoinsUpdate: (coinsCollected: Int) -> Unit = {},
+    private val onGameOver: () -> Unit
 ) {
     private val numRows = cellMatrix.size
-
-    private var lane = 1
+    internal var metersPassed = 0
+    internal var coinsCollected = 0
+    private var lane = 2
     private var lives = 3
+    private var isGameOver = false
+    fun getLane(): Int = lane
 
     fun moveLeft() {
         if (lane > 0) {
@@ -26,7 +32,7 @@ class GameLogic(
     }
 
     fun moveRight() {
-        if (lane < 2) {
+        if (lane <  cellMatrix[0].size - 1 ) {
             lane++
             onMarioDraw(lane)
             checkForCollision()
@@ -41,54 +47,34 @@ class GameLogic(
             cell.tag = null
             loseLife()
         }
+        if (cell.tag == "coin") {
+            Log.d("GameDebug", "💰 Mario collected a coin!")
+            collectCoin(cell)
+        }
+    }
+
+    fun incrementMeters() {
+        if (isGameOver) return
+        metersPassed++
+        (context as MainActivity).runOnUiThread {
+            onMeterUpdate(metersPassed)
+        }
     }
 
 
-    fun spawnBomb() {
-        val col = (0..2).random()
-        val type = if ((0..1).random() == 0) R.drawable.greenshell else R.drawable.redshell
-        dropBomb(col, type)
+    public fun collectCoin(cell: ImageView) {
+        coinsCollected++
+        onMeterUpdate(metersPassed)
+        (context as MainActivity).runOnUiThread {
+            context.uiUpdater.updateCoins(coinsCollected)
+        }
+        cell.setImageDrawable(null)
+        cell.tag = null
+        onMarioDraw(lane)
     }
 
-    private fun dropBomb(col: Int, drawableId: Int) {
-        var currentRow = 0
-        val delay: Long = 500L
-
-        object : CountDownTimer(delay * numRows, delay) {
-            override fun onTick(millisUntilFinished: Long) {
-                val row = currentRow
-
-                if (row > 0) {
-                    cellMatrix[row - 1][col].setImageDrawable(null)
-                    cellMatrix[row - 1][col].tag = null
-                }
-
-                if (row >= numRows) return
-
-
-                cellMatrix[row][col].setImageResource(drawableId)
-                cellMatrix[row][col].tag = "shell"
-
-
-                if (row == numRows - 1 && col == lane) {
-                    loseLife()
-                }
-
-                currentRow++
-            }
-
-            override fun onFinish() {
-
-                if (currentRow == numRows && col != lane) {
-                    cellMatrix[numRows - 1][col].setImageDrawable(null)
-                    cellMatrix[numRows - 1][col].tag = null
-                }
-            }
-        }.start()
-    }
-
-
-    private fun loseLife() {
+    public fun loseLife() {
+        if (isGameOver) return
         lives--
         onHeartUpdate(lives)
 
@@ -98,12 +84,36 @@ class GameLogic(
         onMarioDraw(lane)
 
         if (lives == 0) {
+            isGameOver = true
             SignalManager.getInstance().toast("☠️ Game Over!")
             SignalManager.getInstance().vibrate()
+            onGameOver()
         }
     }
+    fun reset() {
+        for (row in 0 until numRows) {
+            for (col in 0 until cellMatrix[0].size) {
+                val cell = cellMatrix[row][col]
+                cell.setImageDrawable(null)
+                cell.tag = null
+            }
+        }
+        lane = 2
+        lives = 3
+        metersPassed = 0
+        coinsCollected = 0
+        isGameOver = false
+        onHeartUpdate(lives)
+        onMeterUpdate(metersPassed)
+        onCoinsUpdate(coinsCollected)
+        onMarioDraw(lane)
+
+
+    }
+
 
     fun drawMarioInitial() {
         onMarioDraw(lane)
     }
+
 }

@@ -4,9 +4,12 @@ import android.os.CountDownTimer
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import com.example.supermariorun.Utilities.SignalManager
+import com.example.supermariorun.Utilities.UIUpdater
 
 
 class MainActivity : AppCompatActivity() {
@@ -18,8 +21,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var heart1: ImageView
     private lateinit var heart2: ImageView
     private lateinit var heart3: ImageView
-    private val numRows = 6
-    private val numCols = 3
+    private lateinit var metersTextView: TextView
+    private lateinit var coinsTextView: TextView
+    private lateinit var spawnerManager: SpawnerManager
+    internal lateinit var uiUpdater: UIUpdater
+    private val numRows = 9
+    private val numCols = 5
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,14 +36,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         findViews()
         setupGrid()
+        uiUpdater = UIUpdater(heart1, heart2, heart3, metersTextView, coinsTextView)
         gameLogic = GameLogic(
             context = this,
             cellMatrix = cellMatrix,
             onMarioDraw = { lane -> drawMario(lane) },
-            onHeartUpdate = { lives -> updateHearts(lives) }
+            onHeartUpdate = { lives ->  uiUpdater.updateHearts(lives)},
+            onMeterUpdate = { meters -> uiUpdater.updateMeters(meters) } ,
+            onCoinsUpdate = { coins -> uiUpdater.updateCoins(coins) },
+            onGameOver = { handleGameOver()  }
         )
         initViews()
-        startSpawningBombs()
+        startGameTick()
+        spawnerManager = SpawnerManager(
+            gameLogic = gameLogic,
+            cellMatrix = cellMatrix,
+            onMarioDraw = { lane -> drawMario(lane) }
+        )
+        spawnerManager.startAll()
     }
 
     private fun findViews(){
@@ -44,6 +62,8 @@ class MainActivity : AppCompatActivity() {
         heart1 = findViewById(R.id.heart1)
         heart2 = findViewById(R.id.heart2)
         heart3 = findViewById(R.id.heart3)
+        metersTextView = findViewById(R.id.metersTextView)
+        coinsTextView = findViewById(R.id.coinsTextView)
     }
     private fun initViews() {
             btnLeft.setOnClickListener {
@@ -80,35 +100,46 @@ class MainActivity : AppCompatActivity() {
     private fun drawMario(lane: Int) {
         for (i in 0 until numCols) {
             val cell = cellMatrix[numRows - 1][i]
-            if (cell.tag != "shell") {
+            if (cell.tag != "shell" && cell.tag != "coin") {
                 cell.setImageDrawable(null)
                 cell.tag = null
             }
         }
         cellMatrix[numRows - 1][lane].setImageResource(R.drawable.mario)
     }
-
-
-    private fun startSpawningBombs() {
-        object : CountDownTimer(Long.MAX_VALUE, 2000) {
+    private fun startGameTick() {
+        object : CountDownTimer(Long.MAX_VALUE, 500) {
             override fun onTick(millisUntilFinished: Long) {
-                gameLogic.spawnBomb()
+                gameLogic.incrementMeters()
             }
 
             override fun onFinish() {
-                startSpawningBombs()
+                startGameTick()
             }
         }.start()
     }
 
 
-    private fun updateHearts(livesLeft: Int) {
-        when (livesLeft) {
-            2 -> heart3.setImageDrawable(null)
-            1 -> heart2.setImageDrawable(null)
-            0 -> heart1.setImageDrawable(null)
+    private fun handleGameOver() {
+        spawnerManager.stopAll()
+        spawnerManager.occupiedColumns.clear()
+        runOnUiThread {
+            AlertDialog.Builder(this)
+                .setTitle("Game Over")
+                .setMessage("Do you want to play again?")
+                .setPositiveButton("Yes") { _, _ ->
+                    gameLogic.reset()
+                    spawnerManager.startAll()
+                }
+                .setNegativeButton("No") { _, _ ->
+                    finish()
+                }
+                .show()
         }
     }
+
+
+
 
 
 }
