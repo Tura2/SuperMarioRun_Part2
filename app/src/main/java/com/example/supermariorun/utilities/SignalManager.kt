@@ -1,4 +1,4 @@
-package com.example.supermariorun.Utilities
+package com.example.supermariorun.utilities
 
 import android.content.Context
 import android.os.Build

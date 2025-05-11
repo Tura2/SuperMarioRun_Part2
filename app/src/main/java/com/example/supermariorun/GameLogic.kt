@@ -3,8 +3,7 @@ package com.example.supermariorun
 import android.content.Context
 import android.util.Log
 import android.widget.ImageView
-import com.example.supermariorun.Utilities.SignalManager
-import com.example.supermariorun.Utilities.UIUpdater
+import com.example.supermariorun.utilities.SignalManager
 
 class GameLogic(
     private val context: Context,

@@ -1,4 +1,4 @@
-package com.example.supermariorun.Utilities
+package com.example.supermariorun.utilities
 
 import android.widget.ImageView
 import android.widget.TextView

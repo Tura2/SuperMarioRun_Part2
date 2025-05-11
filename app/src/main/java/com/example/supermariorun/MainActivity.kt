@@ -8,8 +8,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
-import com.example.supermariorun.Utilities.SignalManager
-import com.example.supermariorun.Utilities.UIUpdater
+import com.example.supermariorun.utilities.SignalManager
+import com.example.supermariorun.utilities.UIUpdater
 
 
 class MainActivity : AppCompatActivity() {
@@ -46,6 +46,7 @@ class MainActivity : AppCompatActivity() {
             onCoinsUpdate = { coins -> uiUpdater.updateCoins(coins) },
             onGameOver = { handleGameOver()  }
         )
+        val useSensor = intent.getBooleanExtra("MODE_SENSOR", false)
         initViews()
         startGameTick()
         spawnerManager = SpawnerManager(
