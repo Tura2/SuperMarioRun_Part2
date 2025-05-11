@@ -12,6 +12,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SuperMarioRun"
         tools:targetApi="31">
+
         <activity android:name=".activities.MenuActivity"
             android:exported="true"
             tools:ignore="Instantiatable">
@@ -21,7 +22,10 @@
             </intent-filter>
         </activity>
 
-    </application>
-    <uses-permission android:name="android.permission.VIBRATE" />
+        <activity android:name=".activities.HighScoresActivity" />
+        <activity android:name=".activities.MapActivity" />
 
+    </application>
+
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>

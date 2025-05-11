@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/item_high_score_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:weightSum="10">
+
+        <TextView
+            android:id="@+id/item_txt_name"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            android:text="Player"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/item_txt_coins"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.5"
+            android:text="0"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textColor="#333333" />
+
+        <TextView
+            android:id="@+id/item_txt_meters"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2.5"
+            android:text="0"
+            android:textSize="14sp"
+            android:gravity="center"
+            android:textColor="#333333" />
+
+        <ImageButton
+            android:id="@+id/item_btn_map"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_dialog_map"
+            android:contentDescription="Map icon"
+            android:scaleType="centerInside"
+            app:tint="#007AFF" />
+    </LinearLayout>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#DDDDDD" />
+</LinearLayout>

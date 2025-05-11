@@ -2,13 +2,14 @@ package com.example.supermariorun.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.supermariorun.activities.MapActivity
 import com.example.supermariorun.R
 import com.example.supermariorun.data.HighScore
 import com.example.supermariorun.utilities.HighScoreManager
-import com.example.supermariorun.MapActivity
 
 class HighScoresActivity : AppCompatActivity() {
 
@@ -19,6 +20,10 @@ class HighScoresActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_high_scores)
 
+        val backButton: Button = findViewById(R.id.high_scores_btn_back)
+        backButton.setOnClickListener {
+            finish()
+        }
         recyclerView = findViewById(R.id.high_scores_recycler)
         recyclerView.layoutManager = LinearLayoutManager(this)
 
@@ -31,5 +36,7 @@ class HighScoresActivity : AppCompatActivity() {
         }
 
         recyclerView.adapter = adapter
+
+
     }
 }
