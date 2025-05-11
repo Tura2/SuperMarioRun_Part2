@@ -22,8 +22,10 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".MainActivity" />
         <activity android:name=".activities.HighScoresActivity" />
         <activity android:name=".activities.MapActivity" />
+
 
     </application>
 

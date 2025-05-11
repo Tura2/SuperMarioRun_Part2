@@ -114,5 +114,8 @@ class GameLogic(
     fun drawMarioInitial() {
         onMarioDraw(lane)
     }
+    fun getCoins(): Int = coinsCollected
+    fun getMeters(): Int = metersPassed
+
 
 }

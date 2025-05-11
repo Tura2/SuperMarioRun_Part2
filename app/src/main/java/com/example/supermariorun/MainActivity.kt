@@ -8,8 +8,11 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
+import com.example.supermariorun.data.HighScore
+import com.example.supermariorun.utilities.HighScoreManager
 import com.example.supermariorun.utilities.SignalManager
 import com.example.supermariorun.utilities.UIUpdater
+import com.example.supermariorun.utilities.HighScoreManager.addHighScore
 
 
 class MainActivity : AppCompatActivity() {
@@ -119,25 +122,57 @@ class MainActivity : AppCompatActivity() {
             }
         }.start()
     }
+    private fun saveHighScore(onDone: () -> Unit) {
+        val inputField = android.widget.EditText(this)
+        inputField.hint = "Enter your name"
 
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Game Over! Enter your name")
+            .setView(inputField)
+            .setCancelable(false)
+            .setPositiveButton("OK") { _, _ ->
+                val playerName = inputField.text.toString().ifBlank { "Anonymous" }
+
+                val score = HighScore(
+                    name = playerName,
+                    coins = gameLogic.getCoins(),
+                    meters = gameLogic.getMeters(),
+                    lat = 32.11506,
+                    lon = 34.81772
+                )
+
+                addHighScore(this, score)
+                onDone()
+            }
+            .create()
+
+        dialog.show()
+    }
+
+    private fun showGameOverDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Game Over")
+            .setMessage("Do you want to play again?")
+            .setPositiveButton("Yes") { _, _ ->
+                gameLogic.reset()
+                spawnerManager.startAll()
+            }
+            .setNegativeButton("No") { _, _ ->
+                finish()
+            }
+            .show()
+    }
 
     private fun handleGameOver() {
         spawnerManager.stopAll()
         spawnerManager.occupiedColumns.clear()
         runOnUiThread {
-            AlertDialog.Builder(this)
-                .setTitle("Game Over")
-                .setMessage("Do you want to play again?")
-                .setPositiveButton("Yes") { _, _ ->
-                    gameLogic.reset()
-                    spawnerManager.startAll()
-                }
-                .setNegativeButton("No") { _, _ ->
-                    finish()
-                }
-                .show()
+            saveHighScore {
+                showGameOverDialog()
+            }
         }
     }
+
 
 
 
