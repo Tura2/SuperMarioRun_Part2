@@ -7,49 +7,32 @@ class SpawnerManager(
     private val gameLogic: GameLogic,
     private val cellMatrix: Array<Array<ImageView>>,
     private val onMarioDraw: (lane: Int) -> Unit,
-    internal val occupiedColumns: MutableSet<Int> = mutableSetOf<Int>()
-
 ) {
-    private var bombTimer: CountDownTimer? = null
-    private var coinTimer: CountDownTimer? = null
+    private val justSpawnedColumns = mutableSetOf<Int>()
     private val activeDropTimers = mutableListOf<CountDownTimer>()
     private val numRows = cellMatrix.size
     private val numCols = cellMatrix[0].size
+    private var isFastMode = false
 
-    fun startBombs() {
-        bombTimer = object : CountDownTimer(Long.MAX_VALUE, 1500L) {
-            override fun onTick(millisUntilFinished: Long) {
-                val col = (0 until numCols).random()
-                val type = if ((0..1).random() == 0) R.drawable.greenshell else R.drawable.redshell
-                dropBomb(type)
-            }
-
-            override fun onFinish() {
-                startBombs()
-            }
-        }.start()
+    fun setFastMode(enabled: Boolean) {
+        isFastMode = enabled
     }
 
-    fun startCoins() {
-        coinTimer = object : CountDownTimer(Long.MAX_VALUE, (1000L..2000L).random()) {
-            override fun onTick(millisUntilFinished: Long) {
-                val col = (0 until numCols).random()
-                dropCoin(R.drawable.mario_coin)
-            }
+    fun spawnBomb() {
+        val type = if ((0..1).random() == 0) R.drawable.greenshell else R.drawable.redshell
+        dropBomb(type)
+    }
 
-            override fun onFinish() {
-                startCoins()
-            }
-        }.start()
+    fun spawnCoin() {
+        dropCoin(R.drawable.mario_coin)
     }
 
     private fun dropBomb(drawableId: Int) {
-        val col = (0 until numCols).shuffled().firstOrNull { it !in occupiedColumns }
+        val col = (0 until numCols).shuffled().firstOrNull { it !in justSpawnedColumns }
         if (col == null) return
-
-        occupiedColumns.add(col)
+        justSpawnedColumns.add(col)
         var currentRow = 0
-        val delay: Long = 500L
+        val delay = if (isFastMode) 250L else 500L
         val timer = object : CountDownTimer(delay * numRows, delay) {
             override fun onTick(millisUntilFinished: Long) {
                 if (currentRow > 0) clearCell(currentRow - 1, col)
@@ -69,19 +52,17 @@ class SpawnerManager(
 
             override fun onFinish() {
                 clearCell(numRows - 1, col)
-                occupiedColumns.remove(col)
             }
         }.start()
         activeDropTimers.add(timer)
     }
 
     private fun dropCoin(drawableId: Int) {
-        val col = (0 until numCols).shuffled().firstOrNull { it !in occupiedColumns }
+        val col = (0 until numCols).shuffled().firstOrNull { it !in justSpawnedColumns }
         if (col == null) return
-
-        occupiedColumns.add(col)
+        justSpawnedColumns.add(col)
         var currentRow = 0
-        val delay: Long = (400L..700L).random()
+        val delay = if (isFastMode) 250L else 500L
         val timer = object : CountDownTimer(delay * numRows, delay) {
             override fun onTick(millisUntilFinished: Long) {
                 if (currentRow > 0) clearCell(currentRow - 1, col)
@@ -102,7 +83,6 @@ class SpawnerManager(
 
             override fun onFinish() {
                 clearCell(numRows - 1, col)
-                occupiedColumns.remove(col)
             }
         }.start()
         activeDropTimers.add(timer)
@@ -119,23 +99,14 @@ class SpawnerManager(
         cell.tag = null
     }
 
-    fun stopBombs() {
-        bombTimer?.cancel()
-    }
-
-    fun stopCoins() {
-        coinTimer?.cancel()
-    }
-
     fun stopAll() {
-        stopBombs()
-        stopCoins()
         activeDropTimers.forEach { it.cancel() }
         activeDropTimers.clear()
     }
-
-    fun startAll() {
-        startBombs()
-        startCoins()
+    fun clearSpawnedThisTick() {
+        justSpawnedColumns.clear()
     }
+
+
+
 }

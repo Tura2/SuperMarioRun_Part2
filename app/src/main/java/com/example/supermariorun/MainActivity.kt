@@ -9,16 +9,16 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import com.example.supermariorun.data.HighScore
-import com.example.supermariorun.utilities.HighScoreManager
 import com.example.supermariorun.utilities.SignalManager
 import com.example.supermariorun.utilities.UIUpdater
 import com.example.supermariorun.utilities.HighScoreManager.addHighScore
-
+import com.example.supermariorun.utilities.GameTicker
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var gameLogic: GameLogic
     private lateinit var cellMatrix: Array<Array<ImageView>>
+    private lateinit var gameTicker: GameTicker
     private lateinit var btnLeft: ImageButton
     private lateinit var btnRight: ImageButton
     private lateinit var heart1: ImageView
@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var coinsTextView: TextView
     private lateinit var spawnerManager: SpawnerManager
     internal lateinit var uiUpdater: UIUpdater
+    private var useSensor: Boolean = false
     private val numRows = 9
     private val numCols = 5
 
@@ -49,15 +50,32 @@ class MainActivity : AppCompatActivity() {
             onCoinsUpdate = { coins -> uiUpdater.updateCoins(coins) },
             onGameOver = { handleGameOver()  }
         )
-        val useSensor = intent.getBooleanExtra("MODE_SENSOR", false)
         initViews()
-        startGameTick()
         spawnerManager = SpawnerManager(
             gameLogic = gameLogic,
             cellMatrix = cellMatrix,
             onMarioDraw = { lane -> drawMario(lane) }
         )
-        spawnerManager.startAll()
+        useSensor = intent.getBooleanExtra("MODE_SENSOR", false)
+        gameTicker = GameTicker(
+            onMeterTick = {
+                runOnUiThread { gameLogic.incrementMeters() }
+            },
+            onBombDrop = {
+                runOnUiThread { spawnerManager.spawnBomb() }
+            },
+            onCoinDrop = {
+                runOnUiThread { spawnerManager.spawnCoin() }
+            },
+            onTickEnd = {
+                runOnUiThread { spawnerManager.clearSpawnedThisTick() }
+            }
+        )
+        gameTicker.start()
+        gameTicker.setFastMode(useSensor)
+        spawnerManager.setFastMode(useSensor)
+
+
     }
 
     private fun findViews(){
@@ -111,17 +129,8 @@ class MainActivity : AppCompatActivity() {
         }
         cellMatrix[numRows - 1][lane].setImageResource(R.drawable.mario)
     }
-    private fun startGameTick() {
-        object : CountDownTimer(Long.MAX_VALUE, 500) {
-            override fun onTick(millisUntilFinished: Long) {
-                gameLogic.incrementMeters()
-            }
 
-            override fun onFinish() {
-                startGameTick()
-            }
-        }.start()
-    }
+
     private fun saveHighScore(onDone: () -> Unit) {
         val inputField = android.widget.EditText(this)
         inputField.hint = "Enter your name"
@@ -155,7 +164,10 @@ class MainActivity : AppCompatActivity() {
             .setMessage("Do you want to play again?")
             .setPositiveButton("Yes") { _, _ ->
                 gameLogic.reset()
-                spawnerManager.startAll()
+                gameTicker.start()
+                gameTicker.setFastMode(useSensor)
+                spawnerManager.setFastMode(useSensor)
+
             }
             .setNegativeButton("No") { _, _ ->
                 finish()
@@ -164,14 +176,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleGameOver() {
+        gameTicker.stop()
         spawnerManager.stopAll()
-        spawnerManager.occupiedColumns.clear()
         runOnUiThread {
             saveHighScore {
                 showGameOverDialog()
             }
         }
     }
+
 
 
 
