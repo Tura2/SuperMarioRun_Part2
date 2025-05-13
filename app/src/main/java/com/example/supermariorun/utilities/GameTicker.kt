@@ -11,6 +11,7 @@ class GameTicker(
 ) {
     private var timer: Timer? = null
     private var intervalMillis: Long = NORMAL_INTERVAL
+    private var meterTickInterval = METER_TICK_INTERVAL_NORMAL
     private var tickCount = 0
 
     fun start() {
@@ -21,7 +22,7 @@ class GameTicker(
             override fun run() {
                 tickCount++
 
-                if (tickCount % METER_TICK_INTERVAL == 0) {
+                if (tickCount % meterTickInterval == 0) {
                     onMeterTick()
                 }
                 if (tickCount % BOMB_TICK_INTERVAL == 0) {
@@ -42,17 +43,19 @@ class GameTicker(
 
     fun setFastMode(enabled: Boolean) {
         intervalMillis = if (enabled) FAST_INTERVAL else NORMAL_INTERVAL
-        if (timer != null) {
-            start()
-        }
+        meterTickInterval = if (enabled) METER_TICK_INTERVAL_FAST else METER_TICK_INTERVAL_NORMAL
+        start()
     }
 
+
     companion object {
+        private const val METER_TICK_INTERVAL_NORMAL = 5
+        private const val METER_TICK_INTERVAL_FAST = 4
+
+        private const val BOMB_TICK_INTERVAL = 10
+        private const val COIN_TICK_INTERVAL = 10
         private const val NORMAL_INTERVAL = 100L
         private const val FAST_INTERVAL = 50L
 
-        private const val METER_TICK_INTERVAL = 5
-        private const val BOMB_TICK_INTERVAL = 10
-        private const val COIN_TICK_INTERVAL = 10
     }
 }
