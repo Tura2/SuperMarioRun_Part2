@@ -3,15 +3,15 @@ package com.example.supermariorun.activities
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Switch
 import androidx.appcompat.app.AppCompatActivity
 import com.example.supermariorun.MainActivity
 import com.example.supermariorun.R
-//import com.example.supermariorun.activities.HighScoresActivity
+import androidx.appcompat.widget.SwitchCompat
 
 class MenuActivity : AppCompatActivity() {
 
-    private lateinit var menu_switch_mode: Switch
+    private lateinit var menu_switch_mode: SwitchCompat
+    private lateinit var switchTiltMode: SwitchCompat
     private lateinit var menu_btn_play: Button
     private lateinit var menu_btn_high_scores: Button
 
@@ -20,13 +20,18 @@ class MenuActivity : AppCompatActivity() {
         setContentView(R.layout.activity_menu)
 
         menu_switch_mode = findViewById(R.id.menu_switch_mode)
+        switchTiltMode = findViewById(R.id.switchTiltMode)
         menu_btn_play = findViewById(R.id.menu_btn_play)
         menu_btn_high_scores = findViewById(R.id.menu_btn_high_scores)
 
         menu_btn_play.setOnClickListener {
-            val useSensor = menu_switch_mode.isChecked
+            val fastMode = menu_switch_mode.isChecked
+            val useTilt = switchTiltMode.isChecked
+
             val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("MODE_SENSOR", useSensor)
+            intent.putExtra("MODE_SENSOR", fastMode)
+            intent.putExtra("USE_TILT", useTilt)
+
             startActivity(intent)
         }
 

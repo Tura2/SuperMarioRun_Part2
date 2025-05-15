@@ -15,9 +15,12 @@ import com.example.supermariorun.utilities.UIUpdater
 import com.example.supermariorun.utilities.HighScoreManager.addHighScore
 import com.example.supermariorun.utilities.GameTicker
 import com.example.supermariorun.utilities.LocationFetcher
-import com.example.supermariorun.utilities.SoundManager
+import android.view.View
+import com.example.supermariorun.utilities.TiltCallback
+import com.example.supermariorun.utilities.TiltDetector
 
-class MainActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity(), TiltCallback {
 
     private lateinit var gameLogic: GameLogic
     private lateinit var cellMatrix: Array<Array<ImageView>>
@@ -32,9 +35,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var spawnerManager: SpawnerManager
     internal lateinit var uiUpdater: UIUpdater
     private lateinit var locationFetcher: LocationFetcher
-    private var useSensor: Boolean = false
     private val numRows = 9
     private val numCols = 5
+    private var useTilt: Boolean = false
+    private var tiltDetector: TiltDetector? = null
+    private var useSensor: Boolean = false
     private var currentLat: Double? = null
     private var currentLon: Double? = null
 
@@ -63,6 +68,14 @@ class MainActivity : AppCompatActivity() {
             onMarioDraw = { lane -> drawMario(lane) }
         )
         useSensor = intent.getBooleanExtra("MODE_SENSOR", false)
+        useTilt = intent.getBooleanExtra("USE_TILT", false)
+
+        if (useTilt) {
+            btnLeft.visibility = View.GONE
+            btnRight.visibility = View.GONE
+
+            tiltDetector = TiltDetector(this, this)
+        }
         gameTicker = GameTicker(
             onMeterTick = {
                 runOnUiThread { gameLogic.incrementMeters() }
@@ -196,8 +209,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    override fun tiltX(direction: Float) {
+        runOnUiThread {
+            if (direction > 0) {
+                gameLogic.moveRight()
+            } else {
+                gameLogic.moveLeft()
+            }
+        }
+    }
+    override fun tiltY(direction: Float) {
+        // future use for speed control
+    }
+    override fun onResume() {
+        super.onResume()
+        Log.d("LIFECYCLE", "onResume called - tilt start")
+        if (useTilt) {
+            tiltDetector?.start()
+        }
+    }
 
-
+    override fun onPause() {
+        Log.d("LIFECYCLE", "onPause called - tilt stop")
+        if (useTilt) {
+            tiltDetector?.stop()
+        }
+        super.onPause()
+    }
 
 
 

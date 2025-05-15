@@ -1,37 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/menu_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#94D7E8"
+    tools:context=".activities.MenuActivity">
 
+    <!-- Mario Image -->
+    <ImageView
+        android:id="@+id/mario_logo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="96dp"
+        android:layout_marginEnd="24dp"
+        android:contentDescription="@string/super_mario_run_logo"
+        android:scaleType="fitCenter"
+        android:src="@drawable/super_mario_icon_512"
+        app:layout_constraintBottom_toTopOf="@+id/menu_switch_mode"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Fast Mode Switch -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/menu_switch_mode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Fast Mode  "
+        android:textColor="#000000"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/mario_logo"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- Tilt Mode Switch -->
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchTiltMode"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tilt Mode   "
+        android:checked="false"
+        android:textColor="#000000"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/menu_switch_mode"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- Menu Buttons -->
     <LinearLayout
-        android:id="@+id/menu_root"
+        android:id="@+id/menu_buttons"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp">
-
-        <Switch
-            android:id="@+id/menu_switch_mode"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:text="Sensor Mode"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
+        app:layout_constraintTop_toBottomOf="@id/switchTiltMode"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="24dp">
 
         <Button
             android:id="@+id/menu_btn_play"
-            android:layout_width="wrap_content"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Play" />
+            android:backgroundTint="#43A047"
+            android:text="Play"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
 
         <Button
             android:id="@+id/menu_btn_high_scores"
-            android:layout_width="wrap_content"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="High Scores" />
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#3949AB"
+            android:text="High Scores"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="18sp" />
     </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
