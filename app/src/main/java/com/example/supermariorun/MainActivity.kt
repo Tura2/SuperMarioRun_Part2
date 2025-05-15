@@ -15,6 +15,7 @@ import com.example.supermariorun.utilities.UIUpdater
 import com.example.supermariorun.utilities.HighScoreManager.addHighScore
 import com.example.supermariorun.utilities.GameTicker
 import com.example.supermariorun.utilities.LocationFetcher
+import com.example.supermariorun.utilities.SoundManager
 
 class MainActivity : AppCompatActivity() {
 

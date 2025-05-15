@@ -14,7 +14,6 @@ import com.google.android.gms.maps.model.MarkerOptions
 
 class MapActivity : AppCompatActivity(), OnMapReadyCallback {
 
-    private lateinit var map_text_location: TextView
     private lateinit var map_button_close: ImageButton
     private var latitude: Double = 0.0
     private var longitude: Double = 0.0
@@ -24,15 +23,12 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_map)
 
-        map_text_location = findViewById(R.id.map_text_location)
         map_button_close = findViewById(R.id.map_button_close)
 
         latitude = intent.getDoubleExtra("LAT", 0.0)
         longitude = intent.getDoubleExtra("LON", 0.0)
 
-        map_text_location.text = "📍\n$latitude\n$longitude"
-
-        map_button_close.setOnClickListener {
+        findViewById<ImageButton>(R.id.map_button_close).setOnClickListener {
             finish()
         }
 
@@ -45,7 +41,18 @@ class MapActivity : AppCompatActivity(), OnMapReadyCallback {
         map = googleMap
 
         val location = LatLng(latitude, longitude)
-        map?.addMarker(MarkerOptions().position(location))
+
+        // Add a real Google Maps marker with lat/lon label as title/snippet
+        map?.addMarker(
+            MarkerOptions()
+                .position(location)
+                .title("High Score Location")
+                .snippet("📍 %.2f, %.2f".format(latitude, longitude))
+        )?.showInfoWindow()
+
+        // Center the camera on the actual point
         map?.moveCamera(CameraUpdateFactory.newLatLngZoom(location, 15f))
     }
+
+
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import android.widget.ImageView
 import com.example.supermariorun.utilities.SignalManager
+import com.example.supermariorun.utilities.SoundManager
 
 class GameLogic(
     private val context: Context,
@@ -63,6 +64,7 @@ class GameLogic(
 
     public fun collectCoin(cell: ImageView) {
         coinsCollected++
+        SoundManager.playSound(context, R.raw.coincollect)
         onMeterUpdate(metersPassed)
         (context as MainActivity).runOnUiThread {
             context.uiUpdater.updateCoins(coinsCollected)
@@ -75,6 +77,7 @@ class GameLogic(
     public fun loseLife() {
         if (isGameOver) return
         lives--
+        SoundManager.playSound(context, R.raw.crashsound)
         onHeartUpdate(lives)
 
         val marioCell = cellMatrix[numRows - 1][lane]
@@ -84,6 +87,7 @@ class GameLogic(
 
         if (lives == 0) {
             isGameOver = true
+            SoundManager.playSound(context, R.raw.gameover)
             SignalManager.getInstance().toast("☠️ Game Over!")
             SignalManager.getInstance().vibrate()
             onGameOver()
