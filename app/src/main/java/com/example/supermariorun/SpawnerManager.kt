@@ -12,10 +12,10 @@ class SpawnerManager(
     private val activeDropTimers = mutableListOf<CountDownTimer>()
     private val numRows = cellMatrix.size
     private val numCols = cellMatrix[0].size
-    private var isFastMode = false
+    private var spawnDelay = 500L
 
-    fun setFastMode(enabled: Boolean) {
-        isFastMode = enabled
+    fun setCustomSpawnDelay(delay: Long) {
+        spawnDelay = delay
     }
 
     fun spawnBomb() {
@@ -32,7 +32,7 @@ class SpawnerManager(
         if (col == null) return
         justSpawnedColumns.add(col)
         var currentRow = 0
-        val delay = if (isFastMode) 250L else 500L
+        val delay = spawnDelay
         val timer = object : CountDownTimer(delay * numRows, delay) {
             override fun onTick(millisUntilFinished: Long) {
                 if (currentRow > 0) clearCell(currentRow - 1, col)
@@ -62,7 +62,7 @@ class SpawnerManager(
         if (col == null) return
         justSpawnedColumns.add(col)
         var currentRow = 0
-        val delay = if (isFastMode) 250L else 500L
+        val delay = spawnDelay
         val timer = object : CountDownTimer(delay * numRows, delay) {
             override fun onTick(millisUntilFinished: Long) {
                 if (currentRow > 0) clearCell(currentRow - 1, col)

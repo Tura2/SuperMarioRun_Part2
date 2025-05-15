@@ -20,6 +20,7 @@ import com.example.supermariorun.utilities.TiltCallback
 import com.example.supermariorun.utilities.TiltDetector
 
 
+
 class MainActivity : AppCompatActivity(), TiltCallback {
 
     private lateinit var gameLogic: GameLogic
@@ -42,6 +43,10 @@ class MainActivity : AppCompatActivity(), TiltCallback {
     private var useSensor: Boolean = false
     private var currentLat: Double? = null
     private var currentLon: Double? = null
+    private val speedLevels = listOf(500L, 450L, 400L, 350L, 300L, 250L)
+    private var currentSpeedIndex = 0
+    private var lastTiltTime: Long = 0
+    private var isGameOver = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,31 +56,39 @@ class MainActivity : AppCompatActivity(), TiltCallback {
         setContentView(R.layout.activity_main)
         findViews()
         setupGrid()
+
         uiUpdater = UIUpdater(heart1, heart2, heart3, metersTextView, coinsTextView)
+
         gameLogic = GameLogic(
             context = this,
             cellMatrix = cellMatrix,
             onMarioDraw = { lane -> drawMario(lane) },
-            onHeartUpdate = { lives ->  uiUpdater.updateHearts(lives)},
-            onMeterUpdate = { meters -> uiUpdater.updateMeters(meters) } ,
+            onHeartUpdate = { lives -> uiUpdater.updateHearts(lives) },
+            onMeterUpdate = { meters -> uiUpdater.updateMeters(meters) },
             onCoinsUpdate = { coins -> uiUpdater.updateCoins(coins) },
-            onGameOver = { handleGameOver()  }
+            onGameOver = { handleGameOver() }
         )
+
         initViews()
+
         spawnerManager = SpawnerManager(
             gameLogic = gameLogic,
             cellMatrix = cellMatrix,
             onMarioDraw = { lane -> drawMario(lane) }
         )
+
         useSensor = intent.getBooleanExtra("MODE_SENSOR", false)
         useTilt = intent.getBooleanExtra("USE_TILT", false)
-
+        Log.d("DEBUG", "speedLevels.lastIndex = ${speedLevels.lastIndex}")
         if (useTilt) {
             btnLeft.visibility = View.GONE
             btnRight.visibility = View.GONE
-
             tiltDetector = TiltDetector(this, this)
+            currentSpeedIndex = if (useSensor) speedLevels.lastIndex else 0
+
         }
+
+
         gameTicker = GameTicker(
             onMeterTick = {
                 runOnUiThread { gameLogic.incrementMeters() }
@@ -92,15 +105,20 @@ class MainActivity : AppCompatActivity(), TiltCallback {
         )
         gameTicker.start()
         gameTicker.setFastMode(useSensor)
-        spawnerManager.setFastMode(useSensor)
+
+
+        if (useTilt) {
+            applySpeedChange()
+        }
+
         locationFetcher = LocationFetcher(this)
         locationFetcher.requestLocation { lat, lon ->
             currentLat = lat
             currentLon = lon
             Log.d("TEST", "Location fetched: $lat, $lon")
         }
-
     }
+
 
     private fun findViews(){
         btnLeft = findViewById(R.id.btnLeft)
@@ -188,19 +206,33 @@ class MainActivity : AppCompatActivity(), TiltCallback {
             .setTitle("Game Over")
             .setMessage("Do you want to play again?")
             .setPositiveButton("Yes") { _, _ ->
+                isGameOver = false
                 gameLogic.reset()
                 gameTicker.start()
-                gameTicker.setFastMode(useSensor)
-                spawnerManager.setFastMode(useSensor)
-
+                if (useTilt) {
+                    currentSpeedIndex = if (useSensor) speedLevels.lastIndex else 0
+                    applySpeedChange()
+                } else {
+                    gameTicker.setFastMode(useSensor)
+                }
             }
             .setNegativeButton("No") { _, _ ->
                 finish()
             }
             .show()
     }
+    private fun applySpeedChange() {
+        val newDelay = speedLevels[currentSpeedIndex]
+        Log.d("TILT_SPEED", "New spawn delay: $newDelay")
+        Log.d("TILT_INDEX", "Current speed index: $currentSpeedIndex")
+
+        spawnerManager.setCustomSpawnDelay(newDelay)
+        gameTicker.setCustomInterval(newDelay / 7)
+    }
+
 
     private fun handleGameOver() {
+        isGameOver = true
         gameTicker.stop()
         spawnerManager.stopAll()
         runOnUiThread {
@@ -218,9 +250,33 @@ class MainActivity : AppCompatActivity(), TiltCallback {
             }
         }
     }
+
+
     override fun tiltY(direction: Float) {
-        // future use for speed control
+        if (isGameOver) return
+        val now = System.currentTimeMillis()
+
+        // Debounce threshold
+        if (now - lastTiltTime < 500) return  // Changed from 300 → 500ms to reduce sensitivity
+        lastTiltTime = now
+
+        val newSpeedIndex = when {
+            direction <= 8.5f && currentSpeedIndex < speedLevels.lastIndex -> currentSpeedIndex + 1
+            direction >= 5.8f && currentSpeedIndex > 0 -> currentSpeedIndex - 1
+            else -> currentSpeedIndex // No change
+        }
+
+        // Only apply change if it’s different
+        if (newSpeedIndex != currentSpeedIndex) {
+            currentSpeedIndex = newSpeedIndex
+            Log.d("TILT_SPEED", "Tilt triggered speed index change to $currentSpeedIndex")
+            applySpeedChange()
+        }
     }
+
+
+
+
     override fun onResume() {
         super.onResume()
         Log.d("LIFECYCLE", "onResume called - tilt start")

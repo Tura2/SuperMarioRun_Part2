@@ -5,45 +5,54 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.util.Log
 import kotlin.math.abs
 
 class TiltDetector(context: Context, private var tiltCallback: TiltCallback?) {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private var sensorEventListener: SensorEventListener? = null
-    private var lastTimestamp = 0L
+    private val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) as Sensor
+    private lateinit var sensorEventListener: SensorEventListener
 
-    fun start() {
-        if (sensorEventListener == null) {
-            sensorEventListener = object : SensorEventListener {
-                override fun onSensorChanged(event: SensorEvent) {
-                    val x = event.values[0]
+    private var lastEventTime: Long = 0L
 
-                    // Only trigger every 300ms
-                    val now = System.currentTimeMillis()
-                    if (now - lastTimestamp >= 300) {
-                        lastTimestamp = now
-                        if (abs(x) > 3.0f) {
-                            tiltCallback?.tiltX(x)
-                        }
+    init {
+        initSensorLogic()
+    }
+
+    private fun initSensorLogic() {
+        sensorEventListener = object : SensorEventListener {
+            override fun onSensorChanged(event: SensorEvent) {
+                val x = event.values[0]
+                val y = event.values[1]
+
+                Log.d("TILT_SENSOR", "x = $x, y = $y") // ← Logs raw sensor values
+
+                val now = System.currentTimeMillis()
+                if (now - lastEventTime >= 500) {
+                    lastEventTime = now
+
+                    if (abs(x) >= 3.0f) {
+                        Log.d("TILT_X", "Tilt detected in X: $x")
+                        tiltCallback?.tiltX(x)
+                    }
+
+                    if (abs(y) >= 3.0f) {
+                        Log.d("TILT_Y", "Tilt detected in Y: $y")
+                        tiltCallback?.tiltY(y)
                     }
                 }
-
-                override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
             }
-        }
 
-        sensorManager.registerListener(
-            sensorEventListener,
-            accelerometer,
-            SensorManager.SENSOR_DELAY_GAME
-        )
+            override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
+        }
+    }
+
+    fun start() {
+        sensorManager.registerListener(sensorEventListener, sensor, SensorManager.SENSOR_DELAY_GAME)
     }
 
     fun stop() {
-        sensorEventListener?.let {
-            sensorManager.unregisterListener(it)
-        }
+        sensorManager.unregisterListener(sensorEventListener)
     }
 }
