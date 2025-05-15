@@ -1,20 +1,25 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/map_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
     android:background="@android:color/white">
+
+    <fragment
+        android:id="@+id/map_fragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 
     <TextView
         android:id="@+id/map_text_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="📍\n0.0\n0.0"
-        android:textSize="24sp"
-        android:textAlignment="center"
+        android:text="@string/n0_0_n0_0"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
         android:layout_centerInParent="true"
-        android:textColor="@android:color/black" />
+        android:background="@android:color/white"
+        android:padding="8dp" />
 
     <ImageButton
         android:id="@+id/map_button_close"
@@ -24,6 +29,5 @@
         android:layout_alignParentEnd="true"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_close"
-        android:contentDescription="Close" />
-
+        android:contentDescription="@string/close" />
 </RelativeLayout>

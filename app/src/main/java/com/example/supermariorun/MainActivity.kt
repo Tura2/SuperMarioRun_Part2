@@ -1,6 +1,7 @@
 package com.example.supermariorun
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -13,6 +14,7 @@ import com.example.supermariorun.utilities.SignalManager
 import com.example.supermariorun.utilities.UIUpdater
 import com.example.supermariorun.utilities.HighScoreManager.addHighScore
 import com.example.supermariorun.utilities.GameTicker
+import com.example.supermariorun.utilities.LocationFetcher
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,9 +30,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var coinsTextView: TextView
     private lateinit var spawnerManager: SpawnerManager
     internal lateinit var uiUpdater: UIUpdater
+    private lateinit var locationFetcher: LocationFetcher
     private var useSensor: Boolean = false
     private val numRows = 9
     private val numCols = 5
+    private var currentLat: Double? = null
+    private var currentLon: Double? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +79,12 @@ class MainActivity : AppCompatActivity() {
         gameTicker.start()
         gameTicker.setFastMode(useSensor)
         spawnerManager.setFastMode(useSensor)
-
+        locationFetcher = LocationFetcher(this)
+        locationFetcher.requestLocation { lat, lon ->
+            currentLat = lat
+            currentLon = lon
+            Log.d("TEST", "Location fetched: $lat, $lon")
+        }
 
     }
 
@@ -146,8 +156,8 @@ class MainActivity : AppCompatActivity() {
                     name = playerName,
                     coins = gameLogic.getCoins(),
                     meters = gameLogic.getMeters(),
-                    lat = 32.11506,
-                    lon = 34.81772
+                    lat = currentLat ?: 0.0,
+                    lon = currentLon ?: 0.0
                 )
 
                 addHighScore(this, score)
@@ -157,6 +167,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog.show()
     }
+
 
     private fun showGameOverDialog() {
         AlertDialog.Builder(this)
