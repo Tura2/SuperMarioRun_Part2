@@ -1,4 +1,5 @@
 package com.example.supermariorun
+import android.app.AlertDialog
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -8,7 +9,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AlertDialog
 import com.example.supermariorun.data.HighScore
 import com.example.supermariorun.utilities.SignalManager
 import com.example.supermariorun.utilities.UIUpdater
@@ -42,6 +42,9 @@ class MainActivity : AppCompatActivity(), TiltCallback {
     private var useSensor: Boolean = false
     private var currentLat: Double? = null
     private var currentLon: Double? = null
+    private var isGameOver = false
+
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -201,6 +204,7 @@ class MainActivity : AppCompatActivity(), TiltCallback {
     }
 
     private fun handleGameOver() {
+        isGameOver = true
         gameTicker.stop()
         spawnerManager.stopAll()
         runOnUiThread {
@@ -218,9 +222,32 @@ class MainActivity : AppCompatActivity(), TiltCallback {
             }
         }
     }
-    override fun tiltY(direction: Float) {
-        // future use for speed control
+    private var currentSpeedIndex = 0 // 0 = slow, 1 = fast
+
+    override fun tiltY(y: Float) {
+        Log.d("TILT_Y", "Y-axis tilt received: $y")
+
+        val upperThreshold = 9.5f
+        val lowerThreshold = 6.0f
+
+        val newSpeedIndex = when {
+            y <= lowerThreshold && currentSpeedIndex < 1 -> currentSpeedIndex + 1
+            y >= upperThreshold && currentSpeedIndex > 0 -> currentSpeedIndex - 1
+            else -> currentSpeedIndex
+        }
+
+        if (newSpeedIndex != currentSpeedIndex) {
+            currentSpeedIndex = newSpeedIndex
+            val fastMode = currentSpeedIndex == 1
+            gameTicker.setFastMode(fastMode)
+            spawnerManager.setFastMode(fastMode)
+            Log.d("TILT_Y", "Y = $y → Switching to ${if (fastMode) "FAST" else "SLOW"} mode")
+        } else {
+            Log.d("TILT_Y", "Y = $y → No change in speed mode (already active)")
+        }
     }
+
+
     override fun onResume() {
         super.onResume()
         Log.d("LIFECYCLE", "onResume called - tilt start")

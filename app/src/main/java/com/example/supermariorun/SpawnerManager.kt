@@ -12,11 +12,14 @@ class SpawnerManager(
     private val activeDropTimers = mutableListOf<CountDownTimer>()
     private val numRows = cellMatrix.size
     private val numCols = cellMatrix[0].size
-    private var isFastMode = false
+
+     var isFastMode = false
+        private set
 
     fun setFastMode(enabled: Boolean) {
         isFastMode = enabled
     }
+
 
     fun spawnBomb() {
         val type = if ((0..1).random() == 0) R.drawable.greenshell else R.drawable.redshell

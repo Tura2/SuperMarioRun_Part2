@@ -19,7 +19,7 @@ class TiltDetector(context: Context, private var tiltCallback: TiltCallback?) {
             sensorEventListener = object : SensorEventListener {
                 override fun onSensorChanged(event: SensorEvent) {
                     val x = event.values[0]
-
+                    val y = event.values[1]
                     // Only trigger every 300ms
                     val now = System.currentTimeMillis()
                     if (now - lastTimestamp >= 300) {
@@ -27,6 +27,10 @@ class TiltDetector(context: Context, private var tiltCallback: TiltCallback?) {
                         if (abs(x) > 3.0f) {
                             tiltCallback?.tiltX(x)
                         }
+                        if (abs(y) > 3.0f) {
+                            tiltCallback?.tiltY(y)
+                        }
+
                     }
                 }
 

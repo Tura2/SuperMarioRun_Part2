@@ -13,6 +13,9 @@ class GameTicker(
     private var intervalMillis: Long = NORMAL_INTERVAL
     private var meterTickInterval = METER_TICK_INTERVAL_NORMAL
     private var tickCount = 0
+    var isFastMode: Boolean = false
+        private set
+
 
     fun start() {
         stop()
@@ -42,8 +45,11 @@ class GameTicker(
     }
 
     fun setFastMode(enabled: Boolean) {
+        if (isFastMode == enabled) return
+        isFastMode = enabled
         intervalMillis = if (enabled) FAST_INTERVAL else NORMAL_INTERVAL
         meterTickInterval = if (enabled) METER_TICK_INTERVAL_FAST else METER_TICK_INTERVAL_NORMAL
+
         start()
     }
 

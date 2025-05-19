@@ -63,6 +63,7 @@ class GameLogic(
 
 
     public fun collectCoin(cell: ImageView) {
+        if (isGameOver) return
         coinsCollected++
         SoundManager.playSound(context, R.raw.coincollect)
         onMeterUpdate(metersPassed)
