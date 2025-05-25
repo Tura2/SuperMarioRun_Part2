@@ -14,10 +14,12 @@ import com.example.supermariorun.utilities.SignalManager
 import com.example.supermariorun.utilities.UIUpdater
 import com.example.supermariorun.utilities.HighScoreManager.addHighScore
 import com.example.supermariorun.utilities.GameTicker
-import com.example.supermariorun.utilities.LocationFetcher
 import android.view.View
 import com.example.supermariorun.utilities.TiltCallback
 import com.example.supermariorun.utilities.TiltDetector
+import com.example.supermariorun.utilities.handleTiltX
+import com.example.supermariorun.utilities.handleTiltY
+import com.example.supermariorun.data.GameData
 
 
 class MainActivity : AppCompatActivity(), TiltCallback {
@@ -34,14 +36,11 @@ class MainActivity : AppCompatActivity(), TiltCallback {
     private lateinit var coinsTextView: TextView
     private lateinit var spawnerManager: SpawnerManager
     internal lateinit var uiUpdater: UIUpdater
-    private lateinit var locationFetcher: LocationFetcher
     private val numRows = 9
     private val numCols = 5
     private var useTilt: Boolean = false
     private var tiltDetector: TiltDetector? = null
     private var useSensor: Boolean = false
-    private var currentLat: Double? = null
-    private var currentLon: Double? = null
     private var isGameOver = false
 
 
@@ -96,12 +95,6 @@ class MainActivity : AppCompatActivity(), TiltCallback {
         gameTicker.start()
         gameTicker.setFastMode(useSensor)
         spawnerManager.setFastMode(useSensor)
-        locationFetcher = LocationFetcher(this)
-        locationFetcher.requestLocation { lat, lon ->
-            currentLat = lat
-            currentLon = lon
-            Log.d("TEST", "Location fetched: $lat, $lon")
-        }
 
     }
 
@@ -173,9 +166,10 @@ class MainActivity : AppCompatActivity(), TiltCallback {
                     name = playerName,
                     coins = gameLogic.getCoins(),
                     meters = gameLogic.getMeters(),
-                    lat = currentLat ?: 0.0,
-                    lon = currentLon ?: 0.0
+                    lat = GameData.latitude ?: 0.0,
+                    lon = GameData.longitude ?: 0.0
                 )
+
 
                 addHighScore(this, score)
                 onDone()
@@ -215,37 +209,19 @@ class MainActivity : AppCompatActivity(), TiltCallback {
     }
     override fun tiltX(direction: Float) {
         runOnUiThread {
-            if (direction > 0) {
-                gameLogic.moveRight()
-            } else {
-                gameLogic.moveLeft()
-            }
+            handleTiltX(direction, { gameLogic.moveLeft() }, { gameLogic.moveRight() })
         }
     }
+
     private var currentSpeedIndex = 0 // 0 = slow, 1 = fast
 
     override fun tiltY(y: Float) {
-        Log.d("TILT_Y", "Y-axis tilt received: $y")
-
-        val upperThreshold = 9.5f
-        val lowerThreshold = 6.0f
-
-        val newSpeedIndex = when {
-            y <= lowerThreshold && currentSpeedIndex < 1 -> currentSpeedIndex + 1
-            y >= upperThreshold && currentSpeedIndex > 0 -> currentSpeedIndex - 1
-            else -> currentSpeedIndex
-        }
-
-        if (newSpeedIndex != currentSpeedIndex) {
-            currentSpeedIndex = newSpeedIndex
-            val fastMode = currentSpeedIndex == 1
+        currentSpeedIndex = handleTiltY(y, currentSpeedIndex) { fastMode ->
             gameTicker.setFastMode(fastMode)
             spawnerManager.setFastMode(fastMode)
-            Log.d("TILT_Y", "Y = $y → Switching to ${if (fastMode) "FAST" else "SLOW"} mode")
-        } else {
-            Log.d("TILT_Y", "Y = $y → No change in speed mode (already active)")
         }
     }
+
 
 
     override fun onResume() {

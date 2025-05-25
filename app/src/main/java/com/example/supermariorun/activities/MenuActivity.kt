@@ -2,11 +2,14 @@ package com.example.supermariorun.activities
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import com.example.supermariorun.MainActivity
 import com.example.supermariorun.R
-import androidx.appcompat.widget.SwitchCompat
+import com.example.supermariorun.data.GameData
+import com.example.supermariorun.utilities.LocationFetcher
 
 class MenuActivity : AppCompatActivity() {
 
@@ -14,10 +17,19 @@ class MenuActivity : AppCompatActivity() {
     private lateinit var switchTiltMode: SwitchCompat
     private lateinit var menu_btn_play: Button
     private lateinit var menu_btn_high_scores: Button
+    private lateinit var locationFetcher: LocationFetcher
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
+
+        locationFetcher = LocationFetcher(this)
+
+        locationFetcher.requestLocation { lat, lon ->
+            GameData.latitude = lat
+            GameData.longitude = lon
+            Log.d("MenuActivity", "Location ready: $lat, $lon")
+        }
 
         menu_switch_mode = findViewById(R.id.menu_switch_mode)
         switchTiltMode = findViewById(R.id.switchTiltMode)
@@ -38,6 +50,24 @@ class MenuActivity : AppCompatActivity() {
         menu_btn_high_scores.setOnClickListener {
             val intent = Intent(this, HighScoresActivity::class.java)
             startActivity(intent)
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 101 && grantResults.isNotEmpty() && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            locationFetcher.requestLocation { lat, lon ->
+                GameData.latitude = lat
+                GameData.longitude = lon
+                Log.d("MenuActivity", "Permission granted, location updated: $lat, $lon")
+            }
+        } else {
+            Log.w("MenuActivity", "Location permission denied by user")
         }
     }
 }

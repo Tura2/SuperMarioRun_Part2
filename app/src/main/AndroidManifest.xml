@@ -27,9 +27,10 @@
         <activity android:name=".MainActivity" />
         <activity android:name=".activities.HighScoresActivity" />
         <activity android:name=".activities.MapActivity" />
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="" />
+            android:value="AIzaSyCXDCXnzt7O0KNMoSLZB3NjY2fXUTuXD24" />
 
     </application>
 
